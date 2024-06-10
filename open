@@ -1,0 +1,223 @@
+#!/bin/bash
+
+main () {
+	run_here "$@"
+}
+
+run_here () {
+	dir=$1; shift
+	final_name=$1; shift
+	args="$@"
+	run $dir $dir/out $dir/prev $dir $dir/$final_name "$args"
+}
+
+run () {
+	in_dir=$1; shift
+	out_dir=$1; shift
+	prev_dir=$1; shift
+	exclude_dir=$1; shift
+	final_path=$1; shift
+	args="$@"
+	is_empty $final_path && {
+		explain
+		exit 1
+	}
+	ensure_dirs_exist $out_dir/ $prev_dir/ $exclude_dir/ $final_path
+	exclude_unchanged $in_dir $exclude_dir $prev_dir
+	compile_all $in_dir $out_dir
+	include_unchanged $exclude_dir $in_dir
+	link_to $final_path $out_dir
+	create_prev_files_of $in_dir $prev_dir
+	open $final_path $args
+}
+
+open () {
+	path=$1; shift
+	args="$@"
+	show "opening '$path' with '$args'..."
+	eval $path $args
+}
+
+create_prev_files_of () {
+	dir=$1; shift
+	prev_dir=$1
+	names=$(get_names_with_ext cpp $dir)
+	show "creating prev files of '$names'..."
+	for name in $names; {
+		prev_name=$(change_ext_to prev $name)
+		cp -f $dir/$name $prev_dir/$prev_name
+	}
+}
+
+link_to () {
+	final_path=$1; shift
+	dir=$1
+	paths=$(get_paths_with_ext o $dir)
+	show "linking '$(eval echo $paths)' to '$final_path'..."
+	g++ -Wall -g $paths -o $final_path
+	succeed=$?
+	! (exit $succeed) && {
+		explain
+		exit 2
+	}
+}
+
+compile_all () {
+	dir=$1; shift
+	out_dir=$1
+	names=$(get_names_with_ext cpp $dir)
+	show "compiling '$(eval echo $names)'..."
+	for name in $names; {
+		out_name=$(change_ext_to o $name)
+		compile $dir/$name $out_dir/$out_name
+	}
+}
+
+compile () {
+	path=$1; shift
+	out_path=$1
+	g++ -c -Wall -g $path -o $out_path
+	succeed=$?
+	! (exit $succeed) && {
+		explain
+		exit 3
+	}
+}
+
+include_unchanged () {
+	exclude_dir=$1; shift
+	dir=$1
+	exclude_names=$(get_names_with_ext exclude $exclude_dir)
+	show "including '$exclude_names' to '$dir'..."
+	for exclude_name in $exclude_names; {
+		name=$(change_ext_to cpp $exclude_name)
+		mv $exclude_dir/$exclude_name $dir/$name
+	}
+}
+
+exclude_unchanged () {
+	dir=$1; shift
+	exclude_dir=$1; shift
+	prev_dir=$1
+	names=$(get_names_with_ext cpp $dir)
+	show "getting unchanged from '$names'..."
+	unchanged_names=$(get_unchanged_from $dir $prev_dir)
+	show "excluding '$unchanged_names' from '$dir'..."
+	for name in $unchanged_names; {
+		exclude_name=$(change_ext_to exclude $name)
+		mv $dir/$name $exclude_dir/$exclude_name
+	}
+}
+
+ensure_dirs_exist () {
+	paths="$@"
+	dirs=$(echo $paths | sed -r '{
+		s/ +/\n/g
+	}' | sed -r '{
+		s/\/[^/]*$/\//g
+	}')
+	show "ensuring '$(eval echo $dirs)' exist..."
+	mkdir -p $dirs
+}
+
+get_unchanged_from () {
+	dir=$1; shift
+	prev_dir=$1
+	names=$(get_names_with_ext cpp $dir)
+	unchanged_names=
+	for name in $names; {
+		prev_name=$(change_ext_to prev $name)
+		difference=$(get_diff_of $dir/$name $prev_dir/$prev_name)
+		! is_empty $difference && {
+			continue
+		}
+		unchanged_names+="$name "
+	}
+	echo $unchanged_names
+}
+
+get_diff_of () {
+	path=$1; shift
+	diff_path=$1
+	echo $(diff --new-file $path $diff_path)
+}
+
+explain () {
+cat << "EOF"
+Usage: open [in_dir] [out_dir] [final_path] [args...]
+
+	in_dir
+		The directory of c files
+	out_dir
+		The directory of o files
+	final_path
+		The path to link the o files to
+	args
+		The arguments to be used by the final path
+EOF
+}
+
+get_names_with_ext () {
+	ext=$1; shift
+	dir=$1
+	ls $dir | tr " " "\n" | sed -r '{
+		/\.'"$ext"'$/!d
+	}'
+}
+
+get_paths_with_ext () {
+	ext=$1; shift
+	dir=$1
+	eval echo $dir/* | tr " " "\n" | sed '{
+		/\.'"$ext"'$/!d
+	}'
+}
+
+change_ext_to () {
+	ext=$1; shift
+	name=$1
+	echo $name | sed -r '{
+		s/\.[^./]*$/.'"$ext"'/
+	}'
+}
+
+show () {
+	str="$@"
+	fmt="\e[0;93m"
+	var_fmt="\e[1;96m"
+	noc="\e[m"
+	str=$(echo $str | sed -r "{
+		s/'([^']*)'/'\\$noc\\$var_fmt\1\\$noc\\$fmt'/g
+	}")
+	echo -e $fmt$str$noc
+}
+
+contains () {
+	substr=$1; shift
+	str="$@"
+	[[ $str =~ .*$substr.* ]] && {
+		return 0
+	}
+}
+
+is_empty () {
+	! [[ "$@" ]] && {
+		return 0
+	}
+}
+
+reset () {
+	in_dir=$1; shift
+	out_dir=$1; shift
+	prev_dir=$1; shift
+	exclude_dir=$1; shift
+	final_path=$1; shift
+	out_paths=$(get_paths_with_ext o $out_dir)
+	prev_paths=$(get_paths_with_ext prev $prev_dir)
+	paths="$out_paths $prev_paths $final_path"
+	show "deleting '$(eval echo $paths)'"
+	rm $paths
+}
+
+#reset "$@"
+main "$@"
