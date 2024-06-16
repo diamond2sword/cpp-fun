@@ -30,7 +30,7 @@ public:
 	}
 };
 
-template<int y> Command* vMove() {return new Move<0, y>();}
+template<int y> class vMove: public Move<0, y> {};
 template<int x> class hMove: public Move<x, 0> {};
 
 int main() {
@@ -39,11 +39,11 @@ int main() {
 
 	Command* c1 = new hMove< -1>();
 	history.push_back(c1);
-	Command* c2 = new vMove<1>();
+	Command* c2 = vMove<1>();
 	history.push_back(c2);
 	Command* c3 = new hMove<1>();
 	history.push_back(c3);
-	Command* c4 = new vMove< -1>();
+	Command* c4 = vMove< -1>();
 	history.push_back(c4);
 
 	for (int i=0; i < history.size(); i++) {
