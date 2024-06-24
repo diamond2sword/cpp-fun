@@ -1,7 +1,7 @@
 #!/bin/bash
 
 get_open_config () {
-	cat << EOF
+	cat << EOF | with_common_indent 0
 		TARGET="main"
 		EXECUTABLE_EXT="cpp"
 		CMAKE_MIN_VER="3.11"
@@ -26,11 +26,11 @@ main () {
 
 	get_cmake_lists_txt_str "$dir" "$target" > "$dir/CMakeLists.txt"
 	
-	mkdir "$dir/build"
+	mkdir -p "$dir/build"
 	cd "$dir/build"
 	cmake ..
 	make
-	./main
+	./"$target"
 }
 
 get_cmake_lists_txt_str () {
