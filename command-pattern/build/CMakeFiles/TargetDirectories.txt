@@ -1,3 +1,0 @@
-/data/data/com.termux/files/home/cpp-fun/command-pattern/build/CMakeFiles/main.dir
-/data/data/com.termux/files/home/cpp-fun/command-pattern/build/CMakeFiles/edit_cache.dir
-/data/data/com.termux/files/home/cpp-fun/command-pattern/build/CMakeFiles/rebuild_cache.dir
