@@ -1,0 +1,22 @@
+use cases
+	App UI
+	Move Customization
+		the user that customizes moves wants to
+			Before Move
+				put conditions that must be satisfied before any other iteration
+			Algebra
+				put the relative coordinates of the target cell of the moves relative to the piece's position
+			Move Generator
+				put whether to repeat the pattern to other direction: if the move is not diagonal, repeat this to East, West and South, for North is the default; if the move is diagonal, repeat this to SE, SW and NW, for NE is the default
+			Scanner
+				put whether to summon a scanner that would scan the relative surrounding tiles of the piece relative to its move's iteration
+				put what details of the cell must be true as it gets scanned by the scanner
+			After Move
+				put which pieces will move into where after that all conditions passed
+				put whether the piece will land after the move, which is at default same as where the piece is denoted to move to
+				put which details must be added to the relative pieces, when the conditions for a move passed
+			Legal Moves
+				put which details must be true after that the move is done
+			Iteration
+				put for each iteration of an iterative move its iterative condition that may: use a scanner to check surrounding details; or define for each iteration its unique condition		
+		
