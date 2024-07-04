@@ -18,5 +18,9 @@ use cases
 			Legal Moves
 				put which details must be true after that the move is done
 			Iteration
-				put for each iteration of an iterative move its iterative condition that may: use a scanner to check surrounding details; or define for each iteration its unique condition		
-		
+				put for each iteration of an iterative move its iterative condition that may: use a scanner to check surrounding details; or define for each iteration its unique condition	
+			put before and after steps for a move
+			put that a cell can't be moved upon by any piece
+			put that a scanner summon another scanner
+		Piece Limit
+			Piece can only capture one piece for each move

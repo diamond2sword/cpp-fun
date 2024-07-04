@@ -4,9 +4,10 @@ get_open_config () {
 	cat << EOF | with_common_indent 0
 		TARGET="main"
 		EXECUTABLE_EXT="cpp"
-		CMAKE_MIN_VER="3.11"
+		CMAKE_MIN_VER="3.25"
 		CMAKE_LANGUAGE="CXX"
 		CMAKE_LANGUAGE_VER="1.0.0"
+		CXX_STD_VER="26"
 		IS_FTXUI=false
 		FTXUI_VER=5
 EOF
@@ -15,11 +16,34 @@ EOF
 
 main () {
 	local dir="$1"
-	if [[ ! -f "$dir/open_config" ]]; then
-		get_open_config > "$dir/open_config"
+	local open_config_path="$dir/.open_config"
+
+	if [[ ! -f "$open_config_path" ]]; then
+		get_open_config > "$open_config_path"
 	fi
-	source "$dir/open_config" || exit 1
+	local open_config_str
+	open_config_str=$(for i in $(seq 1 "$(get_open_config | wc -l)"); do
+		local line
+		line=$(get_open_config | get_line "$i") 
+		local var_part
+		var_part=$(echo "$line" | get_var_part)
+		local val_part
+		val_part=$(echo "$var_part" | get_value_in "$open_config_path")
+		if [[ "$val_part" == "" ]]; then
+			echo "$line"
+		else
+			echo "$val_part" | prefix "${var_part}="
+		fi
+	done)
+
+	echo "$open_config_str" > "$open_config_path"
+
+
+	source "$open_config_path" || exit 1
+	bat -l bash "$open_config_path"
+
 	local target="$TARGET"
+
 	if (! ($IS_FTXUI)); then
 		echo "Info: Not using FTXui"	
 	fi
@@ -42,12 +66,23 @@ cat << EOF | with_common_indent 0
 		$($IS_FTXUI && echo "find_package(ftxui $FTXUI_VER REQUIRED)")
 		add_executable($target
 $({
-		ls "$dir" | 
-		tr ' ' '\n' |
-		sed "/\\.$EXECUTABLE_EXT$/!d" |
-		with_common_indent 3
+		find "$dir" -maxdepth 1 | 
+		sed "/\.$EXECUTABLE_EXT$/!d" | {
+			while read -r line; do
+				basename "$line"
+			done
+		} | with_common_indent 3
 })
 		)
+$([[ "$CMAKE_LANGUAGE" == "CXX" ]] && {
+	cat << EOF2 | with_common_indent 0
+		set_property(TARGET $target PROPERTY CXX_STANDARD $CXX_STD_VER)
+EOF2
+	cat << EOF2 | with_common_indent 0 > "$dir/.clangd"
+		CompileFlags:
+			Add: [-std=c++${CXX_STD_VER}]
+EOF2
+})
 $({
 		$IS_FTXUI && cat << EOF2 | with_common_indent 2
 			target_link_libraries($target
@@ -70,7 +105,7 @@ with_common_indent () {
 		sed -E 's/^(\t*).*/\1/g' |
 		tr '\t' '-'
 	))
-	local least_num_indents=${#str_tab_list[1]}
+	local least_num_indents=${#str_tab_list[0]}
 	for str_tab in "${str_tab_list[@]}"; do
 		least_num_indents=$(math_min ${#str_tab} $least_num_indents)
 	done
@@ -99,6 +134,24 @@ math_min () {
 	else
 		echo $num2
 	fi
+}
+
+get_line () {
+	sed -n "$1p"
+}
+
+get_var_part () {
+	sed -n "/^[^ ]\+=[^ ]*$/p" | sed -E "s/^(.*)=.*$/\1/"
+}
+
+get_value_in () {
+	local piped
+	piped="$(cat)"
+	cat "$1" | sed -n "/^${piped}\+=[^ ]*$/p" | sed -E "s/${piped}=(.*)$/\1/"
+}
+
+prefix () {
+	echo "$1$(cat)"
 }
 
 main "$@"
