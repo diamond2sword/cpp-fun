@@ -14,16 +14,26 @@
 
 using namespace ftxui;
 
+
 int main() {
   int counter = 0;
-  auto on_click = [&] { counter++; };
 
-  auto style = ButtonOption::Animated(Color::Default, Color::GrayDark,
-                                      Color::Default, Color::White);
+	auto Style = [&](std::string&& active_label) -> ButtonOption {
+	  auto option = ButtonOption::Animated(Color::Default, Color::GrayDark, Color::Default, Color::White);
+	  option.transform = [&, active_label](const EntryState& s) {
+		  std::string label = s.label;
+		  if (s.focused) {
+			label = label + ": " + active_label;
+		  }
+		  auto element = text(label);
+		return element | center | borderEmpty;
+	  };
+	  return option;
+	};
 
   auto container = Container::Vertical({});
   for (int i = 0; i < 30; ++i) {
-    auto button = Button("Button " + std::to_string(i), on_click, style);
+	auto button = Button("Button " + std::to_string(i), [&, i]{ counter += i;}, Style("Adds " + std::to_string(i)));
     container->Add(button);
   }
 
@@ -31,11 +41,11 @@ int main() {
     return vbox({
                hbox({
                    text("Counter:"),
-                   text(std::to_string(counter)),
-               }),
+				   text(std::to_string(counter)),
+               }) | center,
                separator(),
-               container->Render() | vscroll_indicator | frame |
-                   size(HEIGHT, LESS_THAN, 20),
+               container->Render() |  frame | vscroll_indicator |
+                   size(HEIGHT, LESS_THAN, 20), 
            }) |
            border;
   });

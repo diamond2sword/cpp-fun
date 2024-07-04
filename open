@@ -16,6 +16,10 @@ EOF
 
 main () {
 	local dir="$1"
+	if [[ "$DONT_EXEC" == "true" ]]; then
+		return 0
+	fi
+
 	local open_config_path="$dir/.open_config"
 
 	if [[ ! -f "$open_config_path" ]]; then

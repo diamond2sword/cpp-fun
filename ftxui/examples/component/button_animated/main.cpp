@@ -42,7 +42,7 @@ int main() {
   auto component = Renderer(buttons, [&] {
     return vbox({
         vbox({
-            text("value = " + std::to_string(value)) | center,
+            text("value = " + std::to_string(value)),
             separator(),
             gauge((value - min_value) / (float)(max_value - min_value)),
         }) | border,

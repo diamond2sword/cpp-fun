@@ -235,8 +235,8 @@ int main() {
       "ellipse filled (block)",
       "plot_1 simple",
       "plot_2 filled",
-      "plot_3 3D",
       "text",
+      "plot_3 3D",
   };
   auto tab_toggle = Menu(&tab_titles, &selected_tab);
 

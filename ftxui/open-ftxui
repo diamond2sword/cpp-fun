@@ -1,0 +1,12 @@
+#!/bin/bash
+
+open_path="$HOME/cpp-fun/open"
+
+main () {
+	local dir="$1"
+	DONT_EXEC=true source "$open_path"
+	get_open_config | get_line
+	bash "$open_path" "$dir"
+}
+
+main "$@"

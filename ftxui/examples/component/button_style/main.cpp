@@ -16,13 +16,14 @@ using namespace ftxui;
 int main() {
   int value = 0;
   auto action = [&] { value++; };
-  auto action_renderer =
-      Renderer([&] { return text("count = " + std::to_string(value)); });
+  auto action_renderer = Renderer([&] { 
+		return text("count = " + std::to_string(value));
+	});
 
   auto buttons =
       Container::Vertical({
-          action_renderer,
-          Renderer([] { return separator(); }),
+			action_renderer,
+            Renderer([] { return separator(); }),
           Container::Horizontal({
               Container::Vertical({
                   Button("Ascii 1", action, ButtonOption::Ascii()),
