@@ -25,6 +25,7 @@ int main() {
 		return 1;
 	}
 */
+
 	char8_t h = 'a';
 	std::cout << sizeof(h);
 	return 0;
