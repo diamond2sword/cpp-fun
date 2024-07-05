@@ -18,13 +18,13 @@ int main() {
 
   auto container = Container::Vertical({});
   for (int i = 0; i < 30; ++i) {
-    states[i] = false;
+    states[i] = i % 2;
     container->Add(Checkbox("Checkbox" + std::to_string(i), &states[i]));
   }
 
   auto renderer = Renderer(container, [&] {
-    return container->Render() | vscroll_indicator | frame |
-           size(HEIGHT, LESS_THAN, 10) | border;
+    return container->Render() | vscroll_indicator | frame | border |
+           size(HEIGHT, LESS_THAN, 10);
   });
 
   auto screen = ScreenInteractive::FitComponent();

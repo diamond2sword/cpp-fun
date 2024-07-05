@@ -19,36 +19,15 @@ main () {
 	if [[ "$DONT_EXEC" == "true" ]]; then
 		return 0
 	fi
-
+	
 	local open_config_path="$dir/.open_config"
-
-	if [[ ! -f "$open_config_path" ]]; then
-		get_open_config > "$open_config_path"
-	fi
-	local open_config_str
-	open_config_str=$(for i in $(seq 1 "$(get_open_config | wc -l)"); do
-		local line
-		line=$(get_open_config | get_line "$i") 
-		local var_part
-		var_part=$(echo "$line" | get_var_part)
-		local val_part
-		val_part=$(echo "$var_part" | get_value_in "$open_config_path")
-		if [[ "$val_part" == "" ]]; then
-			echo "$line"
-		else
-			echo "$val_part" | prefix "${var_part}="
-		fi
-	done)
-
-	echo "$open_config_str" > "$open_config_path"
-
-
-	source "$open_config_path" || exit 1
+	make_open_config "$open_config_path"
+	source "$open_config_path"
 	bat -l bash "$open_config_path"
 
 	local target="$TARGET"
 
-	if (! ($IS_FTXUI)); then
+	if ! $IS_FTXUI; then
 		echo "Info: Not using FTXui"	
 	fi
 
@@ -138,6 +117,32 @@ math_min () {
 	else
 		echo $num2
 	fi
+}
+
+make_open_config () {
+	local open_config_path="$1"
+
+	if [[ ! -f "$open_config_path" ]]; then
+		get_open_config > "$open_config_path"
+	fi
+
+	local open_config_str
+
+	open_config_str=$(for i in $(seq 1 "$(get_open_config | wc -l)"); do
+		local line
+		line=$(get_open_config | get_line "$i") 
+		local var_part
+		var_part=$(echo "$line" | get_var_part)
+		local val_part
+		val_part=$(echo "$var_part" | get_value_in "$open_config_path")
+		if [[ "$val_part" == "" ]]; then
+			echo "$line"
+		else
+			echo "$val_part" | prefix "${var_part}="
+		fi
+	done)
+
+	echo "$open_config_str" > "$open_config_path"
 }
 
 get_line () {

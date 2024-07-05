@@ -4,8 +4,16 @@ open_path="$HOME/cpp-fun/open"
 
 main () {
 	local dir="$1"
+	
 	DONT_EXEC=true source "$open_path"
-	get_open_config | get_line
+
+	local open_config_path="$dir/.open_config"
+	make_open_config "$open_config_path"
+
+	local open_config_str
+	open_config_str=$(cat "$open_config_path" | sed -E "s/^(IS_FTXUI=).*$/\1true/")
+	echo "$open_config_str" > "$open_config_path"
+	
 	bash "$open_path" "$dir"
 }
 

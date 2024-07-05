@@ -29,15 +29,20 @@ int main() {
           [](bool open, Element checkbox, Element radiobox) {
             if (open) {
               return vbox({
+                  filler(),
+                  filler(),
+                  filler(),
+                  filler(),
+                  filler(),
                   checkbox | inverted,
+                  filler(),
                   radiobox | vscroll_indicator | frame |
                       size(HEIGHT, LESS_THAN, 10),
-                  filler(),
               });
             }
             return vbox({
-                checkbox,
                 filler(),
+                checkbox,
             });
           },
   });
