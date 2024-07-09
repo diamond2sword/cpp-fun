@@ -1,30 +1,80 @@
-#include <string>
-
-using RawExpr = std::string;
-using RawExprs = std::vector<RawExpr>;
-struct Scope {
-	bool horizontal_direction;
-	bool vertical_direction;
-	int vertical_level;
-	int horizontal_level;
-};
-using Scopes = std::vector<Scope>;
-
-class Expr {
-public:
-	explicit Expr(RawExpr raw_expr) : raw_expr_(std::move(raw_expr)) {};
-	virtual void Divide() {
-		
-	};
-private:
-	RawExpr raw_expr_;
-};
-
-
-/*
-#include <memory>
+#include <algorithm>
+#include <exception>
+#include <stdexcept>
 #include <string>
 #include <vector>
+#include <memory>
+#include <array>
+#include <iostream>
+
+void PrintException(const std::exception& e) {
+	std::cerr << e.what();
+	try {
+		std::rethrow_if_nested(e);
+	}
+	catch (const std::exception& nested_e) {
+		PrintException(nested_e);
+	}
+}
+
+void ThrowNestedException(const std::string&& what) {
+	std::throw_with_nested(std::runtime_error(what));
+}
+using RawExprBase = std::string;
+using RawExpr = std::shared_ptr<RawExprBase>;
+using RawExprs = std::vector<RawExpr>;
+
+class ExprBase;
+using Expr = std::shared_ptr<ExprBase>;
+using Exprs = std::vector<Expr>;
+
+class ExprBase {
+public:
+	explicit ExprBase(RawExpr original_expr) {
+		original_expr_ = original_expr;
+	};
+	// divide the expr to children_, then make children divide theirs
+	virtual void Divide() {};
+	virtual Exprs SubExprs() const {
+		if (!children_.empty()) {
+			return children_;
+		}
+			
+		
+
+		return {};
+	};
+protected:
+	Exprs children_;
+	RawExpr original_expr_;
+};
+
+class Loop : ExprBase {
+	Exprs SubExprs() const override {
+		
+	};
+};
+
+class While : Loop {
+	Exprs SubExprs() const override;
+};
+
+class Scanner : Loop {
+	Exprs SubExprs() const override;
+};
+
+
+int main () {
+	try {
+		RawExpr s = std::make_shared<RawExprBase>("{)");
+		Expr e = std::make_shared<ExprBase>(s);
+	}
+	catch (const std::exception& e) {
+		PrintException(e);
+	}
+}
+
+/*
 
 struct ScopeBase;
 using Scope = std::shared_ptr<ScopeBase>;
