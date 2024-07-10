@@ -1,10 +1,133 @@
+#include <string>
+#include <vector>
+#include <map>
+#include <iostream>
+
+
+
+class Expr {
+public:
+	Expr();;
+	static std::vector<Expr> Translate(const std::string& s);
+	virtual void Print() const;
+	enum class Type : char;
+	static const std::map<Expr::Type, Expr> TypeToExprMap;
+};
+
+enum class Expr::Type : char {
+	OpenListExpr = '{', // Scanner
+	CloseListExpr = '}',
+	OpenHolderExpr = '(',
+	CloseHolderExpr = ')',
+	OpenArgsExpr = '[',
+	CloseArgsExpr = ']',
+	OpenTypeExpr = '<',
+	CloseTypeExpr = '>',
+	ListSeparatorExpr = ';',
+	ArgsSeparatorExpr = ',',
+	VariableExpr = 'v',
+	StringExpr = 's',
+	PositionExpr = 'p', // =, 
+	ConditionExpr = 'c', // ==, !=, >, <, <=, >=,
+	DelayExpr = 'd', // RetrieveDelayed
+	NorthExpr = 'n', // Reset, Relative
+	MoveExpr = 'm', // Delete,
+	RetrieveExpr = 'r', // RetrieveType
+	IntegerExpr = 'i', // Add, Subtract, Divide, Multiply, Modulo
+	FunctionExpr = 'f',
+	ListExpr = 'l', // Make list inline, Typed list
+	HolderExpr = 'h', // Typed holder
+	ArgExpr = 'a', // Get arg
+	TypeExpr = 't',
+};
+
+class OpenListExpr : public Expr {
+public:
+	OpenListExpr() = default;
+	OpenListExpr(const std::string& s);
+};
+class CloseListExpr : public Expr {};
+class OpenHolderExpr : public Expr {};
+class CloseHolderExpr : public Expr {};
+class OpenArgsExpr : public Expr {};
+class CloseArgsExpr : public Expr {};
+class OpenTypeExpr : public Expr {};
+class CloseTypeExpr : public Expr {};
+class ListSeparatorExpr : public Expr {};
+class ArgsSeparatorExpr : public Expr {};
+class VariableExpr : public Expr {};
+class StringExpr : public Expr {};
+class PositionExpr : public Expr {};
+class ConditionExpr : public Expr {};
+class DelayExpr : public Expr {};
+class NorthExpr : public Expr {};
+class MoveExpr : public Expr {};
+class RetrieveExpr : public Expr {};
+class IntegerExpr : public Expr {};
+class FunctionExpr : public Expr {};
+class ListExpr : public Expr {};
+class HolderExpr : public Expr {};
+class ArgExpr : public Expr {};
+class TypeExpr : public Expr {};
+
+Expr::Expr() {}
+
+std::vector<Expr> Expr::Translate(const std::string& s) {
+	return {};
+};
+
+void Expr::Print() const {
+	std::cout << "Hello World\n";
+}
+
+const std::map<Expr::Type, Expr> Expr::TypeToExprMap = {
+	// map each char to an expr
+	{(Expr::Type)'{', OpenListExpr()},
+	{(Expr::Type)'}', CloseListExpr()},
+	{(Expr::Type)'(', OpenHolderExpr()},
+	{(Expr::Type)')', CloseHolderExpr()},
+	{(Expr::Type)'[', OpenArgsExpr()},
+	{(Expr::Type)']', CloseArgsExpr()},
+	{(Expr::Type)'<', OpenTypeExpr()},
+	{(Expr::Type)'>', CloseTypeExpr()},
+	{(Expr::Type)';', ListSeparatorExpr()},
+	{(Expr::Type)',', ArgsSeparatorExpr()},
+	{(Expr::Type)'v', VariableExpr()},
+	{(Expr::Type)'s', StringExpr()},
+	{(Expr::Type)'p', PositionExpr()},
+	{(Expr::Type)'c', ConditionExpr()},
+	{(Expr::Type)'d', DelayExpr()},
+	{(Expr::Type)'n', NorthExpr()},
+	{(Expr::Type)'m', MoveExpr()},
+	{(Expr::Type)'r', RetrieveExpr()},
+	{(Expr::Type)'i', IntegerExpr()},
+	{(Expr::Type)'f', FunctionExpr()},
+	{(Expr::Type)'l', ListExpr()},
+	{(Expr::Type)'h', HolderExpr()},
+	{(Expr::Type)'a', ArgExpr()},
+	{(Expr::Type)'t', TypeExpr()},
+};
+
+OpenListExpr::OpenListExpr(const std::string& s) {
+	OpenListExpr::TypeToExprMap.at(Expr::Type::OpenListExpr).Print();
+}
+
+
+int main () {
+	std::string s {"vxf<i;>[i;]{m;};"};
+	std::vector<Expr> e = Expr::Translate(s);
+	OpenListExpr::TypeToExprMap.at((Expr::Type)'{').Print();
+}
+/*
 #include <algorithm>
+#include <iterator>
 #include <exception>
 #include <stdexcept>
 #include <string>
 #include <vector>
 #include <memory>
 #include <array>
+#include <map>
 #include <iostream>
 
 void PrintException(const std::exception& e) {
@@ -20,6 +143,11 @@ void PrintException(const std::exception& e) {
 void ThrowNestedException(const std::string&& what) {
 	std::throw_with_nested(std::runtime_error(what));
 }
+
+namespace std::ranges {
+	
+};
+
 using RawExprBase = std::string;
 using RawExpr = std::shared_ptr<RawExprBase>;
 using RawExprs = std::vector<RawExpr>;
@@ -34,33 +162,45 @@ public:
 		original_expr_ = original_expr;
 	};
 	// divide the expr to children_, then make children divide theirs
-	virtual void Divide() {};
-	virtual Exprs SubExprs() const {
-		if (!children_.empty()) {
-			return children_;
-		}
-			
-		
-
-		return {};
-	};
+	virtual Exprs SubExprs(std::shared_ptr<int> char_index = nullptr, std::shared_ptr<std::vector<int>> enclosing_char_indexes = nullptr) const;
 protected:
 	Exprs children_;
 	RawExpr original_expr_;
 };
 
+class EnclosingExpr : ExprBase {
+public:
+
+};
+
 class Loop : ExprBase {
-	Exprs SubExprs() const override {
-		
+public:
+	Exprs SubExprs(std::shared_ptr<int> char_index = nullptr, std::shared_ptr<std::vector<int>> enclosing_char_indexes = nullptr) const override {
+		static const char semicolon = ';';
+		static const std::array<char, 4> closing_chars = {
+
+		};
+
+		while (true) {
+			// find an enclosing 
+			auto found_index = std::ranges::find_first_of(
+				original_expr_->begin() + *char_index, 
+				original_expr_->end(), 
+				,
+				original_expr_->end());
+			if (found_index != original_expr_->end()) {
+				int d = std::distance(original_expr_->begin(), found_index);
+			}
+		}
 	};
 };
 
 class While : Loop {
-	Exprs SubExprs() const override;
+	Exprs SubExprs(std::shared_ptr<int> char_index = nullptr, std::shared_ptr<std::vector<int>> enclosing_char_indexes = nullptr) const override;
 };
 
 class Scanner : Loop {
-	Exprs SubExprs() const override;
+	Exprs SubExprs(std::shared_ptr<int> char_index = nullptr, std::shared_ptr<std::vector<int>> enclosing_char_indexes = nullptr) const override;
 };
 
 
@@ -73,6 +213,8 @@ int main () {
 		PrintException(e);
 	}
 }
+
+*/
 
 /*
 

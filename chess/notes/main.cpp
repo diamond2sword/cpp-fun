@@ -335,9 +335,9 @@ int main() {
 	// cin0,1,2,3 = cin0,{1;2;3;};
 	"cin0,(v...r0);",
 	// append to string
-	"v...0+1"
+	"v...0+1",
 	// retrieve list element with index
-	"v...0r1"
+	"v...0r1",
 	// find first default: empty
 	"v...0f1",
 	// find last
