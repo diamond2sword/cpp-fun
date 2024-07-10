@@ -21,12 +21,11 @@ enum class Expr::Type : char {
 	CloseHolderExpr = ')',
 	OpenArgsExpr = '[',
 	CloseArgsExpr = ']',
-	OpenTypeExpr = '<',
-	CloseTypeExpr = '>',
+	OpenAttrExpr = '<',
+	CloseAttrExpr = '>',
 	ListSeparatorExpr = ';',
 	ArgsSeparatorExpr = ',',
 	VariableExpr = 'v',
-	StringExpr = 's',
 	PositionExpr = 'p', // =, 
 	ConditionExpr = 'c', // ==, !=, >, <, <=, >=,
 	DelayExpr = 'd', // RetrieveDelayed
@@ -34,11 +33,12 @@ enum class Expr::Type : char {
 	MoveExpr = 'm', // Delete,
 	RetrieveExpr = 'r', // RetrieveType
 	IntegerExpr = 'i', // Add, Subtract, Divide, Multiply, Modulo
-	FunctionExpr = 'f',
+	FunctionExpr = 'f', // calls a function
 	ListExpr = 'l', // Make list inline, Typed list
 	HolderExpr = 'h', // Typed holder
 	ArgExpr = 'a', // Get arg
 	TypeExpr = 't',
+	ScopeExpr = 's',
 };
 
 class OpenListExpr : public Expr {
@@ -56,7 +56,6 @@ class CloseTypeExpr : public Expr {};
 class ListSeparatorExpr : public Expr {};
 class ArgsSeparatorExpr : public Expr {};
 class VariableExpr : public Expr {};
-class StringExpr : public Expr {};
 class PositionExpr : public Expr {};
 class ConditionExpr : public Expr {};
 class DelayExpr : public Expr {};
@@ -70,7 +69,7 @@ class HolderExpr : public Expr {};
 class ArgExpr : public Expr {};
 class TypeExpr : public Expr {};
 
-Expr::Expr() {}
+Expr::Expr() {};
 
 std::vector<Expr> Expr::Translate(const std::string& s) {
 	return {};
@@ -93,7 +92,6 @@ const std::map<Expr::Type, Expr> Expr::TypeToExprMap = {
 	{(Expr::Type)';', ListSeparatorExpr()},
 	{(Expr::Type)',', ArgsSeparatorExpr()},
 	{(Expr::Type)'v', VariableExpr()},
-	{(Expr::Type)'s', StringExpr()},
 	{(Expr::Type)'p', PositionExpr()},
 	{(Expr::Type)'c', ConditionExpr()},
 	{(Expr::Type)'d', DelayExpr()},
@@ -113,7 +111,7 @@ OpenListExpr::OpenListExpr(const std::string& s) {
 }
 
 
-int main () {
+int main() {
 	std::string s {"vxf<i;>[i;]{m;};"};
 	std::vector<Expr> e = Expr::Translate(s);
 	OpenListExpr::TypeToExprMap.at((Expr::Type)'{').Print();
