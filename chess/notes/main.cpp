@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 /*
  * Mic Test
  */
@@ -6,6 +7,28 @@ void println(std::string s) {
 	std::cout << s << std::endl;
 }
 
+static const std::vector<std::string> next_idea = {
+	"();", /* becomes */ ";",
+	"((););", /* becomes */ "(;);", /* becomes */ ";",
+	"{(...;);};", /* enters */ "{...;};", /* becomes */ "...;",
+	"x1/2{(...;);};", /* enters */ "x1/2{...;};", /* loops */ "x2/2{(...;);};", /* enters */ "x2/2{...;};", /* becomes */ "...;",
+	"m;(<s0;>);", /* becomes */ "(<s0;>);", /* becomes */ ";",
+	"m;(<s0;>...;);", /* becomes */ "(<s0;>...;);", /* becomes */ "...;",
+	"m;(<s1;>...;);", /* becomes */ "m;...;", /* becomes */ "...;",
+	"m;m;(<s1;>...;);", /* becomes */ "m;(<s1;>...;);", /* becomes */ "m;...;", /* becomes */ "...;",
+	"m;m;(<s2;>...;);", /* becomes */ "m;m;...;", /* becomes */ "m;...;", /* becomes */ "...;",
+	"m;m;{m;m;(<s0,0;>...;);};", /* becomes */ "m;{m;m;(<s0,0;>...;);};", /* becomes */ "{m;m;(<s0,0;>...;);};", /* enters */ "{m;(<s0,0;>...;);};", /* becomes */ "{(<s0,0;>...;);};", /* becomes */ "{...;};", /* becomes */ "...;", 
+	"m;m;{m;m;(<s0,1;>...;);};", /* becomes */ "m;{m;m;(<s0,1;>...;);};", /* becomes */ "{m;m;(<s0,0;>...;);};", /* becomes */ "{m;m;...;};", /* enters */ "{m;...;};", /* becomes */ "{...;};", /* becomes */ "...;", 
+
+
+
+
+
+
+
+};
+
+/*
 namespace Chess {
 
 int main() {
@@ -382,6 +405,8 @@ int main() {
 	"<p>r;" // error
 	"<i>x{c0,1;m;};" // error, m returns nothing
 };
+*/
+
 
 
 	
@@ -425,9 +450,11 @@ int main() {
 	auto b = Board()
 		.SetShape(BoardShape::Default())
 		.SetPieceSet(PieceSet::Default())
-*/
+
 
 	return 0;
 }
 
 } // namespace Chess
+
+*/
