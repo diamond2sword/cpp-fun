@@ -11,6 +11,7 @@ void Var::DeduceType(Type* type_ptr, value_t* scope_ptr) const {
 	if (*scope_ptr == type_ptr->size()) {
 		type_ptr->push_back(base_type_);
 	}
+
 	// for unsimilar Type
 	if (base_type_ != type_ptr->at(*scope_ptr)) {
 		type_ptr->at(*scope_ptr) = TypeBase::Var;
@@ -19,24 +20,44 @@ void Var::DeduceType(Type* type_ptr, value_t* scope_ptr) const {
 		}
 		return;
 	}
-	// for not list
-	if (base_type_ != TypeBase::List) {
+	
+	// for List and Ptr
+	if (base_type_ == TypeBase::List || base_type_ == TypeBase::Ptr) {
+		(*scope_ptr)++;
+		// for each children
+		TransformChildrenConst([&] (const Var& child_v) -> Var {
+			// for Var scope
+			if (type_ptr->at(*scope_ptr) == TypeBase::Var) {
+				return Null();
+			}
+			// otherwise
+			child_v.DeduceType(type_ptr, scope_ptr);
+			return Null();
+		});
+		(*scope_ptr)--;
 		return;
 	}
-	// for list
-	(*scope_ptr)++;
-	for (const Var& v : list_) {
-		// for Var scope
-		if (type_ptr->at(*scope_ptr) == TypeBase::Var) {
-			break;
+
+	// for Int, Null, Empty
+	// Do nothing
+};
+
+Var Var::TransformChildrenConst(const std::function<Var(const Var&)>& transform) const {
+	if (base_type_ == TypeBase::List) {
+		std::vector<Var> v_l = {};
+		for (const Var& v : list_) {
+			v_l.push_back(transform(v));
 		}
-		v.DeduceType(type_ptr, scope_ptr);
+		return Var(v_l);
 	}
-	(*scope_ptr)--;
+	if (base_type_ == TypeBase::Ptr) {
+		 return transform(*(*this));
+	}
+	return Null();
 };
 
 Var Var::operator&() {
-	return base_type_ != TypeBase::Ptr || pointer_ == nullptr ? Null() : Var(this);
+	return Var(this);
 };
 Var Var::operator*() const {
 	return base_type_ != TypeBase::Ptr || pointer_ == nullptr ? Null() : *pointer_;
@@ -48,6 +69,7 @@ Var::Var(const std::string& s) : list_(List(s)), base_type_(TypeBase::List) {}; 
 Var::Var(const std::vector<value_t>& s) : list_(List(s)), base_type_(TypeBase::List) {}; // List Int
 Var Var::Ptr(Var& v) { return Var(&v); }; // Ptr
 Var::Var(Var* p) : pointer_(std::move(p)), base_type_(TypeBase::Ptr) {}; // Ptr
+Var Var::NullPtr() { return Var(TypeBase::Ptr); }; // Ptr Null
 Var::Var(const value_t& c) : value_(std::move(c)), base_type_(TypeBase::Int) {}; // Int from char
 Var::Var() : base_type_(TypeBase::Empty) {}; // Empty
 Var Var::Null() { return Var(TypeBase::Null); }; // Null

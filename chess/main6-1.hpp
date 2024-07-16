@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <functional>
 
 class Var {
 private:
@@ -24,6 +25,8 @@ public:
 	static Var Null(); // Null
 	Var(); // Empty
 	Var(const value_t& c); // Int from char
+	Var(const int& c); // Int from char
+	static Var NullPtr(); // Ptr Null
 	Var(Var* p); // Ptr
 	static Var Ptr(Var& v); // Ptr
 	Var(const std::vector<value_t>& s); // List Int
@@ -34,11 +37,12 @@ public:
 	Var operator*() const;
 	Var operator&();
 private:
-	Type DeduceType() const;
-public:
+	Var TransformChildrenConst(const std::function<Var(const Var&)>& transform) const;
+private:
 	void DeduceType(Type* type_ptr, value_t* scope_ptr) const;
+public:
+	Type DeduceType() const;
 private:
 	friend class ToBePrinted;
 };
-
 #endif // MAIN6_1_HPP
