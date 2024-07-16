@@ -1,3 +1,8 @@
+enum class Type : char {
+	
+};
+
+/*
 #include <string>
 #include <vector>
 #include <map>
@@ -116,7 +121,6 @@ int main() {
 	std::vector<Expr> e = Expr::Translate(s);
 	OpenListExpr::TypeToExprMap.at((Expr::Type)'{').Print();
 }
-/*
 #include <algorithm>
 #include <iterator>
 #include <exception>
