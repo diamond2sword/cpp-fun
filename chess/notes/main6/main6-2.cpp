@@ -9,9 +9,9 @@ int main () {
 	Var v = (std::vector<Var>){
 		Var(""), Var(), (Var)&base_v
 	};
-	v.DeduceType();
+	
 	std::vector<TBP> tbp_l {
-		TBP(v), TBP(" "), TBP()
+		TBP(v), TBP(" "), TBP(v.DeduceType())
 	};
 	Printer p = Printer(tbp_l);
 	p.Print();

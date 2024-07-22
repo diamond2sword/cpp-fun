@@ -1,8 +1,26 @@
 #include "main6-1.hpp"
+#include "main6-3.hpp"
 	
 Var::Type Var::DeduceType() const {
 	Type type = {};
 	value_t scope = 0;
+		// BUG
+		using TBP = ToBePrinted;
+		using Printer = ToBePrinted::Printer;
+		Var v = Null();
+		auto base_p = Printer({
+			TBP("Scope: "), TBP(&scope),
+			TBP(", Type: "), TBP(&type),
+			TBP(", Var: "), TBP(&v),
+			TBP("\n")
+		});
+		int n_printers = 15;
+		std::vector<Printer> printers = {};
+		for (int i = 0; i < n_printers; i++) {
+			auto prefix_p = Printer({TBP("[DEBUG BLOCK: " + std::to_string(i) + "] ")});
+			printers.push_back(prefix_p + base_p);
+		}
+		auto printers_ptr = &printers;
 	DeduceType(&type, &scope);
 	return type;
 };
@@ -10,6 +28,10 @@ void Var::DeduceType(Type* type_ptr, value_t* scope_ptr) const {
 	// for new scope
 	if (*scope_ptr == type_ptr->size()) {
 		type_ptr->push_back(base_type_);
+	}
+
+	if (type_ptr->at(*scope_ptr) == TypeBase::Var) {
+		return;
 	}
 
 	// for unsimilar Type
@@ -24,14 +46,8 @@ void Var::DeduceType(Type* type_ptr, value_t* scope_ptr) const {
 	// for List and Ptr
 	if (base_type_ == TypeBase::List || base_type_ == TypeBase::Ptr) {
 		(*scope_ptr)++;
-		// for each children
-		TransformChildrenConst([&] (const Var& child_v) -> Var {
-			// for Var scope
-			if (type_ptr->at(*scope_ptr) == TypeBase::Var) {
-				return Null();
-			}
-			// otherwise
-			child_v.DeduceType(type_ptr, scope_ptr);
+		TransformChildrenConst([&type_ptr, &scope_ptr] (const Var& v) -> Var {
+			v.DeduceType(type_ptr, scope_ptr);
 			return Null();
 		});
 		(*scope_ptr)--;
@@ -42,7 +58,7 @@ void Var::DeduceType(Type* type_ptr, value_t* scope_ptr) const {
 	// Do nothing
 };
 
-Var Var::TransformChildrenConst(const std::function<Var(const Var&)>& transform) const {
+Var Var::TransformChildrenConst(const std::function<Var(const Var& v)>& transform) const {
 	if (base_type_ == TypeBase::List) {
 		std::vector<Var> v_l = {};
 		for (const Var& v : list_) {
@@ -51,7 +67,7 @@ Var Var::TransformChildrenConst(const std::function<Var(const Var&)>& transform)
 		return Var(v_l);
 	}
 	if (base_type_ == TypeBase::Ptr) {
-		 return transform(*(*this));
+		 return transform(**this);
 	}
 	return Null();
 };
