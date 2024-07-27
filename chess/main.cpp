@@ -1,5 +1,5 @@
 #include "main10.hpp"
-
+#include "see.hpp"
 
 Block SetHello(Block __b) {
 	__b.string += "hello";
@@ -48,7 +48,7 @@ Decorator Group(size_t __pos, size_t __nblocks) {
 		__pos >= 0 &&
 		__pos + __nblocks >= 0
 	);
-	return [=](Block __b) noexcept -> Block {
+	return [=](Block __b) -> Block {
 		assert(
 			__pos < __b.blocks.size() &&
 			__pos + __nblocks <= __b.blocks.size()
@@ -66,11 +66,27 @@ Decorator Group(size_t __pos, size_t __nblocks) {
 	};
 }
 
+Decorator GroupReversed(size_t __pos, size_t __nblocks) {
+	assert(
+		__pos - __nblocks + 1 >= 0 &&
+		__pos + 1 >= 0
+	);
+	return [=](Block __b) -> Block {
+		assert(
+			__pos - __nblocks + 1 < __b.blocks.size() &&
+			__pos + 1 <= __b.blocks.size()
+		);
+		return __b | Group(__pos - __nblocks + 1, __nblocks);
+	};
+}
+
 Decorator Ungroup(size_t __pos) {
 	assert(__pos >= 0);
 	return [=](Block __b) -> Block {
-		assert(__pos < __b.blocks.size());
-		assert(__b.blocks[__pos].blocks.size() > 0);
+		assert(
+			__pos < __b.blocks.size() &&
+			__b.blocks[__pos].blocks.size() > 0
+		);
 		
 		__b.blocks.insert(
 			__b.blocks.cbegin() + __pos + 1,
@@ -82,7 +98,6 @@ Decorator Ungroup(size_t __pos) {
 		return __b;
 	};
 }
-
 
 Decorator AddIfEmpty(Block __b) {
 	return If(__b.blocks.empty(), Add(Block()));
@@ -155,8 +170,7 @@ int main() {
 		AddIf([](Block __b) { return __b.blocks.size() == 2; }, Block("Good Afternoon"))
 	});
 	see(c.blocks.size());
-	see(c.blocks[0].string);
-	see(c.blocks[1].string);
-	seeifnot(false, false);
+	c |= GroupReversed(1, 2);
+	see(c.blocks.size());
 	return 0;
 }
