@@ -15,4 +15,7 @@ static size_t see_counter = 0;
 #define see(v) __println(__("[")__(++see_counter)__("] see: ")__see(v));
 #define seeifnot(e, v) if (!e) { __println(__see(e)__(", ")__see(v)); } assert(e);
 
+#define seeifneq(v1, v2) if (v1 != v2) {see(v1); see(v2);} assert(v1 == v2);
+#define seeifeq(v1, v2) if (v1 == v2) {see(v1); see(v2);} assert(v1 != v2);
+
 #endif // SEE_HPP

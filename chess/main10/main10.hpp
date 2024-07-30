@@ -7,6 +7,7 @@
 
 class Block;
 using Blocks = std::vector<Block>;
+using BlockIter = std::__wrap_iter<Block*>;
 
 class Block {
 public:
@@ -17,6 +18,32 @@ public:
 	Block();
 	Block(const std::string&);
 };
+
+class BlockRange {
+public:
+	BlockRange();
+	BlockRange(BlockIter begin, size_t nblocks);
+	BlockIter begin;
+	std::string string;
+	size_t nblocks;
+};
+
+class BlockRangePair {
+public:
+	BlockRangePair(BlockRange __first, BlockRange __last);
+	BlockRangePair(BlockIter __b_last);
+	BlockRange first;
+	BlockRange last;
+};
+
+class StringPair {
+public:
+	StringPair(std::string __first, std::string __last);
+	std::string first;
+	std::string last;
+};
+
+using FindFunction = std::function<BlockRange(BlockIter __b_first, BlockIter __b_last)>;
 
 using Decorator = std::function<Block(Block __b)>;
 using ConditionalDecorator = std::function<Decorator(Block)>;
