@@ -1,4 +1,3 @@
-#include <algorithm>
 #include <array>
 #include <string>
 #include <vector>
@@ -88,6 +87,7 @@ public:
 				this->attrs.push_back(__a);
 		}
 	}
+	__piece(__attr __name, __attrs attrs = {}) : name(__name), attrs(attrs) {}
 };
 
 

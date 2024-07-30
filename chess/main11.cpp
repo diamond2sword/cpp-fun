@@ -10,7 +10,6 @@ int main() {
 			see(__bp.pos.col);
 			seeifneq(__bp.piece().name, __piece().name);
 			seeifneq(__bp.piece().attrs.size(), 0);
-			__bp.move(__pos(0, 1));
 
 			int __then_col = __bp.pos.col;
 			__pos __new_pos = __bp.move(__pos(0, 1));
@@ -23,9 +22,12 @@ int main() {
 			__bp.pos.row = 0;
 	}
 
-	// change attrs
+	// change attr
 	
-	
-
+	__bp.add(__piece(0));
+	seeifneq(__bp.piece().name, 0);
+	__bp.edit({}, {0});
+	seeifneq(__bp.piece().attrs.size(), 1);
+	seeifneq(__bp.piece().attrs[0], 0);
 	return 0;
 }
