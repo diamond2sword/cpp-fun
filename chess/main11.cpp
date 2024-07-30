@@ -7,6 +7,7 @@ int main() {
 	for (int i = 0; i < 8; i++) {
 		see(__bp.pos.row);
 		for (int j = 0; j < 8; j++) {
+			see(__bp.pos.col);
 			seeifneq(__bp.piece().name, __piece().name);
 			seeifneq(__bp.piece().attrs.size(), 0);
 			__bp.move(__pos(0, 1));
@@ -21,5 +22,10 @@ int main() {
 		if (__now_pos.row != __then_row + 1)
 			__bp.pos.row = 0;
 	}
+
+	// change attrs
+	
+	
+
 	return 0;
 }
