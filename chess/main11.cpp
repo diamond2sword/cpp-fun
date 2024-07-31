@@ -7,7 +7,7 @@ int main() {
 	for (int i = 0; i < 8; i++) {
 		see(__bp.pos.row);
 		for (int j = 0; j < 8; j++) {
-			see(__bp.pos.col);
+			__cout(__("\t")); see(__bp.pos.col);
 			seeifneq(__bp.piece().name, __piece().name);
 			seeifneq(__bp.piece().attrs.size(), 0);
 
@@ -29,5 +29,7 @@ int main() {
 	__bp.edit({}, {0});
 	seeifneq(__bp.piece().attrs.size(), 1);
 	seeifneq(__bp.piece().attrs[0], 0);
+	__bp.edit({0}, {0});
+	seeifneq(__bp.piece().attrs.size(), 1);
 	return 0;
 }
