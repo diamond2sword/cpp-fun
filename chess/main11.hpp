@@ -147,30 +147,30 @@ public:
 	__replace_move_data replace(__piece __new_p) const {
 		return __replace_move_data(this->remove(), this->add(__new_p));
 	}
-	__replace_move_data remove_attrs(__attrs attrs) const {
-		__piece __p = this->piece();
+	void remove_attrs(__attrs attrs) const {
 		for (__attr& __a : attrs) {
-			auto __it = std::find(__p.attrs.begin(), __p.attrs.end(), __a);
-			__p.attrs.erase(__it);
+			auto __it = std::find(this->piece().attrs.begin(), this->piece().attrs.end(), __a);
+			this->piece().attrs.erase(__it);
 		}
-		return this->replace(__p);
 	}
-	__replace_move_data add_attrs(__attrs attrs) const {
-		__piece __p = this->piece();
-		for (__attr& __a : attrs)
-			__p.attrs.push_back(__a);
-		return this->replace(__p);
+	void add_attrs(__attrs attrs) const {
+		for (__attr __a : attrs)
+			this->piece().attrs.push_back(__a);
 	}
-	__replace_move_data set_attrs(__attrs attrs) const {
-		__piece __p = this->piece();
-		__p.attrs = attrs;
-		return this->replace(__p);
+	void set_attrs(__attrs attrs) const {
+		this->piece().attrs = attrs;
 	}
 	bool has_attrs(__attrs attrs) const {
-		return std::includes(this->piece().attrs.begin(), this->piece().attrs.end(), attrs.begin(), attrs.end());
+		__attrs __this_attrs = this->piece().attrs;
+		for (__attr __a : attrs) {
+			auto it = std::find(__this_attrs.begin(), __this_attrs.end(), __a);
+			if (it == __this_attrs.cend()) return false;
+			__this_attrs.erase(it);
+		}
+		return true;	
 	}
-	bool is_named(__attr __a) const {
-		return this->piece().name == __a;
+	bool is_named(__attr __name) const {
+		return __name == this->piece().name;
 	}
 	bool is_equal_to(__piece __p) const {
 		return this->is_named(__p.name) && this->has_attrs(__p.attrs) && this->piece().attrs.size() == __p.attrs.size();
