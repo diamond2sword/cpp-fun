@@ -2,8 +2,8 @@
 #include "see.hpp"
 
 int main() {
-	__board<8, 8, __piece> b;
-	auto __bp = __board_ptr<8, 8>(&b);
+	__board<8, 8, __piece> __b;
+	auto __bp = __board_ptr<8, 8>(&__b);
 	for (int i = 0; i < 8; i++) {
 		see(__bp.pos.row);
 		for (int j = 0; j < 8; j++) {
@@ -31,5 +31,29 @@ int main() {
 	seeifneq(__bp.piece().attrs[0], 0);
 	__bp.edit({0}, {0});
 	seeifneq(__bp.piece().attrs.size(), 1);
+
+	__game<8, 8> __g;
+	__g.board = __b;
+	auto __bp2 = __board_ptr<8, 8>(&__g.board, __bp.pos);
+
+	seeifneq(__bp2.piece().attrs[0], __bp.piece().attrs[0]);
+	
+	auto __r_data = __bp2.edit({}, {0});
+
+	seeifneq(__r_data.added.pos.row, __r_data.removed.pos.row);
+	seeifneq(__r_data.added.pos.col, __r_data.removed.pos.col);
+	seeifneq(__r_data.added.pos.col, __bp2.pos.col);
+	seeifneq(__r_data.added.pos.row, __bp2.pos.row);
+
+	seeifneq(__bp2.has_attrs({0}), true);
+
+	__bp2.add_attrs({1});
+	seeifneq(__bp2.has_attrs({1}), true);
+	__bp2.add_attrs({1});
+	seeifneq(__bp2.has_attrs({1, 1}), true);
+	__bp2.remove_attrs({1});
+	seeifneq(__bp2.has_attrs({1, 1}), false);
+	seeifneq(__bp2.has_attrs({1}), true);
+
 	return 0;
 }

@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <array>
 #include <string>
 #include <vector>
@@ -76,33 +77,8 @@ public:
 	__attr name;
 	__attrs attrs;
 	__piece() : name(-1), attrs({}) {}
-	void remove(__attrs attrs) {
-		for (__attr& __a : attrs)
-			std::erase(this->attrs, __a);
-	}
-	void add(__attrs attrs) {
-		for (__attr& __a : attrs) {
-			auto it = std::find(this->attrs.begin(), this->attrs.end(), __a);
-			if (it == this->attrs.end())
-				this->attrs.push_back(__a);
-		}
-	}
 	__piece(__attr __name, __attrs attrs = {}) : name(__name), attrs(attrs) {}
 };
-
-
-
-template <int __nrows, int __ncols>
-class __game {
-	using __piece = __piece;
-	using __board = __board<__nrows, __ncols, __piece>;
-	using __moves = vec<const __move<__piece, __pos>>;
-public:
-	__board board = {};
-	__moves moves = {};
-	size_t nmoves() const {return moves.size();};
-};
-using default_game = __game<8, 8>;
 
 __pos& operator+=(__pos& __p1, __pos __p2) {
 	__p1.row += __p2.row;
@@ -171,14 +147,59 @@ public:
 	__replace_move_data replace(__piece __new_p) const {
 		return __replace_move_data(this->remove(), this->add(__new_p));
 	}
+	__replace_move_data remove_attrs(__attrs attrs) const {
+		__piece __p = this->piece();
+		for (__attr& __a : attrs) {
+			auto __it = std::find(__p.attrs.begin(), __p.attrs.end(), __a);
+			__p.attrs.erase(__it);
+		}
+		return this->replace(__p);
+	}
+	__replace_move_data add_attrs(__attrs attrs) const {
+		__piece __p = this->piece();
+		for (__attr& __a : attrs)
+			__p.attrs.push_back(__a);
+		return this->replace(__p);
+	}
+	__replace_move_data set_attrs(__attrs attrs) const {
+		__piece __p = this->piece();
+		__p.attrs = attrs;
+		return this->replace(__p);
+	}
+	bool has_attrs(__attrs attrs) const {
+		return std::includes(this->piece().attrs.begin(), this->piece().attrs.end(), attrs.begin(), attrs.end());
+	}
+	bool is_named(__attr __a) const {
+		return this->piece().name == __a;
+	}
+	bool is_equal_to(__piece __p) const {
+		return this->is_named(__p.name) && this->has_attrs(__p.attrs) && this->piece().attrs.size() == __p.attrs.size();
+	}
 	__replace_move_data edit(__attrs __to_be_removed, __attrs __to_be_added) const {
 		__move_data __rm_data = __move_data(this->piece(), this->pos);
-		this->piece().remove(__to_be_removed);
-		this->piece().add(__to_be_added);
+		this->remove_attrs(__to_be_removed);
+		this->add_attrs(__to_be_added);
 		return __replace_move_data(__rm_data, __move_data(this->piece(), this->pos));		
 	}
-	__board_ptr(ptr<__board> __the_b, __pos __p = __pos()) : __the_board(__the_b), pos(__p) {};
+	__board_ptr(ptr<__board> __the_b, __pos __p = __pos()) : __the_board(__the_b), pos(__p) {}
+	__board_ptr() : __the_board(nullptr), pos(__pos()) {}
 };
 
+template <int __nrows, int __ncols>
+class __game {
+	using __board = __board<__nrows, __ncols, __piece>;
+	using __moves = vec<const __move<__piece, __pos>>;
+	using __board_ptr = __board_ptr<__nrows, __ncols>;
+public:
+	__board board;
+	__moves moves;
+	__board_ptr board_ptr;
+	size_t nmoves() const {return this->moves.size();}
+	__game() : board(__board()), moves({}) {
+		this->board_ptr = __board_ptr(&board);
+	}
+
+};
+using default_game = __game<8, 8>;
 
 #endif
