@@ -49,11 +49,15 @@ int main() {
 
 	__bp2.add_attrs({1});
 	seeifneq(__bp2.has_attrs({1}), true);
+	__bp2.add_attrs({0});
 	__bp2.add_attrs({1});
 	seeifneq(__bp2.has_attrs({1, 1}), true);
 	__bp2.remove_attrs({1});
 	seeifneq(__bp2.has_attrs({1, 1}), false);
 	seeifneq(__bp2.has_attrs({1}), true);
+	seeifneq(__bp2.has_attrs({0}), true);
+	seeifneq(__bp2.has_attrs({0, 1}), true);
+	seeifneq(__bp2.has_attrs({1, 0}), true);
 
 	return 0;
 }
