@@ -45,19 +45,31 @@ int main() {
 	seeifneq(__r_data.added.pos.col, __bp2.pos.col);
 	seeifneq(__r_data.added.pos.row, __bp2.pos.row);
 
-	seeifneq(__bp2.has_attrs({0}), true);
+	seeifneq(__bp2.has_all_of({0}), true);
 
 	__bp2.add_attrs({1});
-	seeifneq(__bp2.has_attrs({1}), true);
+	seeifneq(__bp2.has_all_of({1}), true);
 	__bp2.add_attrs({0});
 	__bp2.add_attrs({1});
-	seeifneq(__bp2.has_attrs({1, 1}), true);
+	seeifneq(__bp2.has_all_of({1, 1}), true);
 	__bp2.remove_attrs({1});
-	seeifneq(__bp2.has_attrs({1, 1}), false);
-	seeifneq(__bp2.has_attrs({1}), true);
-	seeifneq(__bp2.has_attrs({0}), true);
-	seeifneq(__bp2.has_attrs({0, 1}), true);
-	seeifneq(__bp2.has_attrs({1, 0}), true);
+	seeifneq(__bp2.has_all_of({1, 1}), false);
+	seeifneq(__bp2.has_all_of({1}), true);
+	seeifneq(__bp2.has_all_of({0}), true);
+	seeifneq(__bp2.has_all_of({0, 1}), true);
+	seeifneq(__bp2.has_all_of({1, 0}), true);
 
+	auto has_any_of_gen = [](__attrs attrs) {
+		return [=](auto __bp) {
+			return __bp.has_any_of(attrs);
+		};
+	};
+	auto has_any_of_0_to_1 = has_any_of_gen({0, 1});
+	seeifneq(has_any_of_0_to_1(__bp2), true);
+
+
+	__pos __p = __pos(1, 1) + __pos(1, 1) * __north::south;
+	seeifneq(__p.row, 0);
+	seeifneq(__p.col, 0);
 	return 0;
 }

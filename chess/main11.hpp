@@ -2,6 +2,8 @@
 #include <array>
 #include <string>
 #include <vector>
+#include <map>
+#include <__functional/function.h>
 #include "see.hpp"
 
 
@@ -13,7 +15,19 @@ template <class Tp> using vec = std::vector<Tp>;
 using str = std::string;
 template <class Tp, size_t N> using arr = std::array<Tp, N>;
 template <size_t N1, size_t N2, class Tp> using arr_2d = arr<arr<Tp, N2>, N1>;
-
+template <class Tp> using fun = std::function<Tp>;
+template <class Tp> using transform = fun<Tp(Tp)>;
+template <class Tp> 
+class pipe_result {
+public:
+	Tp object;
+	bool is_success;
+	pipe_result(Tp __object, bool __is_success) : object(__object), is_success(__is_success) {}
+	pipe_result operator|(transform<pipe_result> __t) {
+		return this->is_success ? __t(*this) : *this;
+	}
+};
+template <class Kp, class Tp> using map = std::map<Kp, Tp>;
 
 #ifndef MAIN_10_HPP
 #define MAIN_10_HPP
@@ -98,6 +112,30 @@ __pos operator-(__pos __p1, __pos __p2) {
 	return __p1 -= __p2;
 }
 
+enum class __north {
+	north,
+	east,
+	south,
+	west,
+};
+
+__pos operator*(__pos __p, __north __n) {
+	switch (__n) {
+	case __north::north: return __p;
+	case __north::east: return __pos(__p.col, -__p.row);
+	case __north::west: return __pos(-__p.col, __p.row);
+	case __north::south: return __pos() - __p;
+	}
+}
+
+__north operator*(__north __n1, __north __n2) {
+	return __north((int(__n1) + int(__n2)) % 4);
+}
+
+__north& operator*=(__north& __n1, __north __n2) {
+	return __n1 = __n1 * __n2;
+}
+
 template <class __move_data>
 class __replace_move_data {
 public:
@@ -108,13 +146,14 @@ public:
 
 
 template <int __nrows, int __ncols>
-class __board_ptr : public __board<__nrows, __ncols, __piece> {
+class __board_ptr {
 	using __board = __board<__nrows, __ncols, __piece>;
 	using __move_data = __move_data<__piece, __pos>;
 	using __replace_move_data = __replace_move_data<__move_data>;
 public:
 	ptr<__board> __the_board;
 	__pos pos;
+	__north north;
 	bool is_in_board() const {
 		return 
 			this->pos.row >= 0 &&
@@ -130,10 +169,16 @@ public:
 		return this->pos;
 	}
 	__pos move(__pos __p) {
-		return set(this->pos + __p);
+		return set(this->pos + __p * this->north);
+	}
+	__north face(__north __n) {
+		return this->north = __n;
+	}
+	__north turn(__north __n) {
+		return this->north *= __n;
 	}
 	__piece& piece() const {
-		return __the_board->data[this->pos.row][this->pos.col];
+		return this->__the_board->data[this->pos.row][this->pos.col];
 	}
 	__move_data remove() const {
 		__move_data __m_data = __move_data(this->piece(), this->pos);
@@ -160,7 +205,7 @@ public:
 	void set_attrs(__attrs attrs) const {
 		this->piece().attrs = attrs;
 	}
-	bool has_attrs(__attrs attrs) const {
+	bool has_all_of(__attrs attrs) const {
 		__attrs __this_attrs = this->piece().attrs;
 		for (__attr __a : attrs) {
 			auto it = std::find(__this_attrs.begin(), __this_attrs.end(), __a);
@@ -168,6 +213,21 @@ public:
 			__this_attrs.erase(it);
 		}
 		return true;	
+	}
+	bool lacks_any_of(__attrs attrs) const {
+		return !this->has_all_of(attrs);
+	}
+	bool has_none_of(__attrs attrs) const {
+		__attrs __this_attrs = this->piece().attrs;
+		for (__attr __a : attrs) {
+			auto it = std::find(__this_attrs.begin(), __this_attrs.end(), __a);
+			if (it != __this_attrs.cend()) return false;
+			__this_attrs.erase(it);
+		}
+		return true;
+	}
+	bool has_any_of(__attrs attrs) const {
+		return !this->has_none_of(attrs);
 	}
 	bool is_named(__attr __name) const {
 		return __name == this->piece().name;
@@ -186,6 +246,20 @@ public:
 };
 
 template <int __nrows, int __ncols>
+class __move_gen {
+	using __move_data = __move_data<__piece, __pos>;
+	using __replace_move_data = __replace_move_data<__move_data>;
+	using __moves = vec<const __replace_move_data>;
+	using __moves_map = map<__pos, __moves>;
+	using __board_ptr = __board_ptr<__nrows, __ncols>;
+	using __norths = vec<__north>;
+	using __board_ptr_transforms = vec<transform<__board_ptr>>;
+public:
+	__board_ptr board_ptr;
+	__board_ptr_transforms board_ptr_transforms;
+};
+
+template <int __nrows, int __ncols>
 class __game {
 	using __board = __board<__nrows, __ncols, __piece>;
 	using __moves = vec<const __move<__piece, __pos>>;
@@ -198,8 +272,17 @@ public:
 	__game() : board(__board()), moves({}) {
 		this->board_ptr = __board_ptr(&board);
 	}
-
 };
 using default_game = __game<8, 8>;
+
+int main2() {
+	using bp = __board_ptr<8, 8>;
+	using bpp_res = pipe_result<bp>;
+	using bp_t = transform<bpp_res>;
+	bp_t f = [](bpp_res __r) -> bpp_res { return __r; };
+	bpp_res(bp(), true) | f;
+	return 0 ;
+}
+	
 
 #endif
