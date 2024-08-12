@@ -17,6 +17,7 @@ template <class Tp, size_t N> using arr = std::array<Tp, N>;
 template <size_t N1, size_t N2, class Tp> using arr_2d = arr<arr<Tp, N2>, N1>;
 template <class Tp> using fun = std::function<Tp>;
 template <class Tp> using transform = fun<Tp(Tp)>;
+template <class Tp> using conditional_transform = fun<transform<Tp>(Tp)>;
 template <class Tp> 
 class pipe_result {
 public:
@@ -28,6 +29,8 @@ public:
 	}
 };
 template <class Kp, class Tp> using map = std::map<Kp, Tp>;
+
+
 
 #ifndef MAIN_10_HPP
 #define MAIN_10_HPP
@@ -42,10 +45,6 @@ public:
 	static const size_t ncols = __ncols;
 	arr_2d<__nrows, __ncols, __value_t> data;
 };
-
-
-template <class __value_t>
-class __default_board : public __board<8, 8, __value_t> {};
 
 
 template <class __piece, class __pos>
@@ -82,6 +81,8 @@ public:
 	__pos(int __row, int __col) : row(__row), col(__col) {};
 	__pos() : __pos(0, 0) {};
 };
+template <class Tp>
+using conditional_transform = fun<transform<Tp>(Tp)>;
 
 using __attr = int;
 using __attrs = vec<__attr>;
@@ -154,29 +155,6 @@ public:
 	ptr<__board> __the_board;
 	__pos pos;
 	__north north;
-	bool is_in_board() const {
-		return 
-			this->pos.row >= 0 &&
-			this->pos.row < this->__the_board->nrows &&
-			this->pos.col >= 0 &&
-			this->pos.col < this->__the_board->ncols;
-	}
-	__pos set(__pos __p) {
-		__pos __then_p = this->pos;
-		this->pos = __p;
-		if (!this->is_in_board())
-			this->pos = __then_p;
-		return this->pos;
-	}
-	__pos move(__pos __p) {
-		return set(this->pos + __p * this->north);
-	}
-	__north face(__north __n) {
-		return this->north = __n;
-	}
-	__north turn(__north __n) {
-		return this->north *= __n;
-	}
 	__piece& piece() const {
 		return this->__the_board->data[this->pos.row][this->pos.col];
 	}
@@ -241,8 +219,52 @@ public:
 		this->add_attrs(__to_be_added);
 		return __replace_move_data(__rm_data, __move_data(this->piece(), this->pos));		
 	}
+	bool is_in_board() const {
+		return 
+			this->pos.row >= 0 &&
+			this->pos.row < this->__the_board->nrows &&
+			this->pos.col >= 0 &&
+			this->pos.col < this->__the_board->ncols;
+	}
+	__pos set(__pos __p) {
+		__pos __then_p = this->pos;
+		this->pos = __p;
+		if (!this->is_in_board())
+			this->pos = __then_p;
+		return this->pos;
+	}
+	__pos move(__pos __p) {
+		return set(this->pos + __p * this->north);
+	}
+	__north face(__north __n) {
+		return this->north = __n;
+	}
+	__north turn(__north __n) {
+		return this->north *= __n;
+	}
+	void remember() {}
+	void forget() {}
+	void take() {}
+	void give() {}
+	void reset() {}
 	__board_ptr(ptr<__board> __the_b, __pos __p = __pos()) : __the_board(__the_b), pos(__p) {}
 	__board_ptr() : __the_board(nullptr), pos(__pos()) {}
+};
+
+
+template <int __nrows, int __ncols>
+class __board_ptr_result : public pipe_result<__board_ptr<__nrows, __ncols>> {
+	using __move_data = __move_data<__piece, __pos>;
+	using __replace_move_data = __replace_move_data<__move_data>;
+	using __moves = vec<const __replace_move_data>;
+	using __board_ptr = __board_ptr<__nrows, __ncols>;
+	using __pipe_result = pipe_result<__board_ptr>;
+public:
+	__moves moves;
+	__board_ptr_result(__board_ptr __bp, bool __is_success) : __pipe_result(__bp, __is_success) {};
+	__board_ptr_result operator|(transform<__board_ptr_result> __t) {
+		return this->is_success ? __t(*this) : *this;
+	}
 };
 
 template <int __nrows, int __ncols>
@@ -277,7 +299,7 @@ using default_game = __game<8, 8>;
 
 int main2() {
 	using bp = __board_ptr<8, 8>;
-	using bpp_res = pipe_result<bp>;
+	using bpp_res = __board_ptr_result<8, 8>;
 	using bp_t = transform<bpp_res>;
 	bp_t f = [](bpp_res __r) -> bpp_res { return __r; };
 	bpp_res(bp(), true) | f;
