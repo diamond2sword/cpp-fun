@@ -1,9 +1,20 @@
-#include "hello.hpp"
+#include <iostream>
+#include <string>
 
-int main (int argc, char** argv) {
-	int (*main)(int, char**) = [](int argc, char** argv) -> int {
-		helloWorld();
-		return 0;
-	};
-	return main(argc, argv);
+int main() {
+	std::string __name, __address;
+	while (true) {
+		std::cout << "Name: ";
+		std::cin >> __name;
+		if (__name.size() == 1) {
+			continue;
+		}
+		break;
+	}
+	std::cout << "Address: ";
+	std::cin >> __address;
+	if (__address.empty()) {
+		
+	}
+	return 0;
 }
