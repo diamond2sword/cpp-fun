@@ -138,11 +138,11 @@ public:
 
 
 
-
 class A {
 public:
 	//A() = delete;
 };
 
 #endif //MAIN_11_HPP
+
 
